@@ -14,13 +14,13 @@ const InputBar: React.FC<InputBarProps> = ({ currentMessage, setCurrentMessage, 
   return (
     <form onSubmit={onSubmit} className="flex items-center p-4 border-t">
       <input
-        type="text"
-        className="flex-1 border rounded-lg p-2 mr-2"
-        placeholder="Ask your sales assistant..."
-        className="text-black w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring focus:ring-blue-200"
-        value={currentMessage}
-        onChange={handleChange}
-      />
+          type="text"
+          value={currentMessage}
+          onChange={handleChange}
+          placeholder="Ask your sales assistant..."
+          className="text-black w-full px-4 py-2 mr-2 rounded border border-gray-300 focus:outline-none focus:ring focus:ring-blue-200"
+        />
+
       <button
         type="submit"
         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

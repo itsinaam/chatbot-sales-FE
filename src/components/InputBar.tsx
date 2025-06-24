@@ -17,6 +17,7 @@ const InputBar: React.FC<InputBarProps> = ({ currentMessage, setCurrentMessage, 
         type="text"
         className="flex-1 border rounded-lg p-2 mr-2"
         placeholder="Ask your sales assistant..."
+        className="text-black w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring focus:ring-blue-200"
         value={currentMessage}
         onChange={handleChange}
       />

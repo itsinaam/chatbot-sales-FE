@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import Header from '@/components/Header';
 import InputBar from '@/components/InputBar';
@@ -9,6 +9,7 @@ interface SearchInfo {
   stages: string[];
   query: string;
   urls: string[];
+  error?: string;
 }
 
 interface Message {
@@ -24,18 +25,17 @@ const Home = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      content: 'Hi i am Sales Assistant, how can i help you?',
+      content: 'Hi I am Sales Assistant, how can I help you?',
       isUser: false,
       type: 'message'
     }
   ]);
   const [currentMessage, setCurrentMessage] = useState("");
-  const [checkpointId, setCheckpointId] = useState(null);
+  const [checkpointId, setCheckpointId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (currentMessage.trim()) {
-      // First add the user message to the chat
       const newMessageId = messages.length > 0 ? Math.max(...messages.map(msg => msg.id)) + 1 : 1;
 
       setMessages(prev => [
@@ -49,10 +49,9 @@ const Home = () => {
       ]);
 
       const userInput = currentMessage;
-      setCurrentMessage(""); // Clear input field immediately
+      setCurrentMessage("");
 
       try {
-        // Create AI response placeholder
         const aiResponseId = newMessageId + 1;
         setMessages(prev => [
           ...prev,
@@ -70,32 +69,26 @@ const Home = () => {
           }
         ]);
 
-        // Create URL with checkpoint ID if it exists
         let url = `https://chatbot-sales.vercel.app/chat_stream/${encodeURIComponent(userInput)}`;
         if (checkpointId) {
           url += `?checkpoint_id=${encodeURIComponent(checkpointId)}`;
         }
 
-        // Connect to SSE endpoint using EventSource
         const eventSource = new EventSource(url);
         let streamedContent = "";
-        let searchData = null;
+        let searchData: SearchInfo | null = null;
         let hasReceivedContent = false;
 
-        // Process incoming messages
         eventSource.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
 
             if (data.type === 'checkpoint') {
-              // Store the checkpoint ID for future requests
               setCheckpointId(data.checkpoint_id);
-            }
-            else if (data.type === 'content') {
+            } else if (data.type === 'content') {
               streamedContent += data.content;
               hasReceivedContent = true;
 
-              // Update message with accumulated content
               setMessages(prev =>
                 prev.map(msg =>
                   msg.id === aiResponseId
@@ -103,17 +96,14 @@ const Home = () => {
                     : msg
                 )
               );
-            }
-            else if (data.type === 'search_start') {
-              // Create search info with 'searching' stage
-              const newSearchInfo = {
+            } else if (data.type === 'search_start') {
+              const newSearchInfo: SearchInfo = {
                 stages: ['searching'],
                 query: data.query,
                 urls: []
               };
               searchData = newSearchInfo;
 
-              // Update the AI message with search info
               setMessages(prev =>
                 prev.map(msg =>
                   msg.id === aiResponseId
@@ -121,21 +111,17 @@ const Home = () => {
                     : msg
                 )
               );
-            }
-            else if (data.type === 'search_results') {
+            } else if (data.type === 'search_results') {
               try {
-                // Parse URLs from search results
-                const urls = typeof data.urls === 'string' ? JSON.parse(data.urls) : data.urls;
+                const urls: string[] = typeof data.urls === 'string' ? JSON.parse(data.urls) : data.urls;
 
-                // Update search info to add 'reading' stage (don't replace 'searching')
-                const newSearchInfo = {
+                const newSearchInfo: SearchInfo = {
                   stages: searchData ? [...searchData.stages, 'reading'] : ['reading'],
                   query: searchData?.query || "",
                   urls: urls
                 };
                 searchData = newSearchInfo;
 
-                // Update the AI message with search info
                 setMessages(prev =>
                   prev.map(msg =>
                     msg.id === aiResponseId
@@ -146,10 +132,8 @@ const Home = () => {
               } catch (err) {
                 console.error("Error parsing search results:", err);
               }
-            }
-            else if (data.type === 'search_error') {
-              // Handle search error
-              const newSearchInfo = {
+            } else if (data.type === 'search_error') {
+              const newSearchInfo: SearchInfo = {
                 stages: searchData ? [...searchData.stages, 'error'] : ['error'],
                 query: searchData?.query || "",
                 error: data.error,
@@ -164,11 +148,9 @@ const Home = () => {
                     : msg
                 )
               );
-            }
-            else if (data.type === 'end') {
-              // When stream ends, add 'writing' stage if we had search info
+            } else if (data.type === 'end') {
               if (searchData) {
-                const finalSearchInfo = {
+                const finalSearchInfo: SearchInfo = {
                   ...searchData,
                   stages: [...searchData.stages, 'writing']
                 };
@@ -189,12 +171,10 @@ const Home = () => {
           }
         };
 
-        // Handle errors
         eventSource.onerror = (error) => {
           console.error("EventSource error:", error);
           eventSource.close();
 
-          // Only update with error if we don't have content yet
           if (!streamedContent) {
             setMessages(prev =>
               prev.map(msg =>
@@ -206,7 +186,6 @@ const Home = () => {
           }
         };
 
-        // Listen for end event
         eventSource.addEventListener('end', () => {
           eventSource.close();
         });
@@ -228,7 +207,6 @@ const Home = () => {
 
   return (
     <div className="flex justify-center bg-gray-100 min-h-screen py-8 px-4">
-      {/* Main container with refined shadow and border */}
       <div className="w-[70%] bg-white flex flex-col rounded-xl shadow-lg border border-gray-100 overflow-hidden h-[90vh]">
         <Header />
         <MessageArea messages={messages} />

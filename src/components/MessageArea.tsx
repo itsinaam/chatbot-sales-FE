@@ -3,9 +3,10 @@ import React from 'react';
 interface SearchInfo {
   stages: string[];
   query: string;
-  urls?: string[];
+  urls?: (string | object)[] | string;
   error?: string;
 }
+
 
 interface Message {
   id: number;
